@@ -17,6 +17,9 @@ jobs:
   newman:
     name: Run OpenMRS REST API suite
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
 
     steps:
       - name: Check out repository
