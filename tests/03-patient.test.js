@@ -89,7 +89,12 @@ test.describe('Module 3 — Patient Management Tests', () => {
     await patientPage.goToDashboard();
     await patientPage.searchPatientViaIcon(patients.search.existing);
 
-    // At least one result row, each row being a link to a patient chart.
+    // Wait for an actual result row. Do not rely on waitForSearchSettled alone:
+    // the empty state can render transiently while the query is still in
+    // flight, and .or() resolves on whichever appears first — a race that
+    // local runs win and CI runs lose.
+    await expect(patientPage.searchResults.first()).toBeVisible({ timeout: 30000 });
+
     const count = await patientPage.getSearchResultCount();
     expect(count).toBeGreaterThan(0);
 
