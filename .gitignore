@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Saved auth session — contains live session cookies, never commit
+.auth/
+
+# Playwright artifacts (large; regenerate locally with `npm test`)
+test-results/
+reports/
+
+# Newman: ignore raw JSON/JUnit output, but publish the HTML report
+newman/*
+!newman/.gitkeep
+!newman/openmrs-api-report.html
+
+# Local env / secrets
+.env
+*.local
+
+# OS noise
+.DS_Store
+Thumbs.db

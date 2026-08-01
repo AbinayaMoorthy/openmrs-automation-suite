@@ -1,0 +1,1494 @@
+{
+  "info": {
+    "_postman_id": "348e17c7-17e2-4542-9bb6-d3cc7f8cb7de",
+    "name": "OpenMRS REST API Suite",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "37483297"
+  },
+  "item": [
+    {
+      "name": "TC001 - Session (Health Check)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status is 200\", function() {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"User is authenticated\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.authenticated).to.equal(true);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"System ID is admin\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.user.systemId).to.equal('admin');\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Session location is set\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    // Structural check only: the session location is ambient server state and\r",
+              "    // varies by instance and by whatever ran last. Asserting a specific name\r",
+              "    // here made TC001 depend on TC002 having run first.\r",
+              "    pm.expect(body.sessionLocation).to.not.be.null;\r",
+              "    pm.expect(body.sessionLocation).to.have.property('uuid');\r",
+              "    pm.expect(body.sessionLocation.display).to.be.a('string').and.not.be.empty;\r",
+              "});\r",
+              "\r",
+              "pm.test(\"User has roles assigned\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.user.roles).to.be.an('array');\r",
+              "    pm.expect(body.user.roles.length).to.be.above(0);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Current provider exists\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.currentProvider).to.not.be.null;\r",
+              "});\r",
+              "\r",
+              "// Auto-save UUIDs for use in later requests\r",
+              "const body = pm.response.json();\r",
+              "pm.environment.set(\"locationUuid\", body.sessionLocation.uuid);\r",
+              "pm.environment.set(\"providerUuid\", body.currentProvider.uuid);\r",
+              "pm.environment.set(\"userUuid\", body.user.uuid);\r",
+              "pm.test(\"UUIDs saved to environment\", function() {\r",
+              "    pm.expect(pm.environment.get(\"locationUuid\")).to.not.be.empty;\r",
+              "    pm.expect(pm.environment.get(\"providerUuid\")).to.not.be.empty;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/session",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "session"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC002 - Session (Login)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status is 200\", function() {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Authenticated is true\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.authenticated).to.equal(true);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Session location is set correctly\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.sessionLocation.display).to.equal('Outpatient Clinic');\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response time under 5 seconds\", function() {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"sessionLocation\": \"44c3efb0-2583-4c80-a79e-1f756a03c0a1\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/session",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "session"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC003 - Session (Logout)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status is 204 (logged out successfully)\", function() {\r",
+              "    pm.response.to.have.status(204);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response body is empty on logout\", function() {\r",
+              "    pm.expect(pm.response.text()).to.be.empty;\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response time under 3 seconds\", function() {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/session",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "session"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC004 - List Patients (Search Required)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status is 200\", function() {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response has results array\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body).to.have.property('results');\r",
+              "    pm.expect(body.results).to.be.an('array');\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Results contain patients\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.results.length).to.be.above(0);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Each patient has UUID\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    body.results.forEach(patient => {\r",
+              "        pm.expect(patient).to.have.property('uuid');\r",
+              "    });\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Each patient has display name\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    body.results.forEach(patient => {\r",
+              "        pm.expect(patient).to.have.property('display');\r",
+              "    });\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response time under 5 seconds\", function() {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+              "});\r",
+              "\r",
+              "// Save first patient UUID for next requests\r",
+              "const firstPatient = pm.response.json().results[0];\r",
+              "pm.environment.set(\"patientUuid\", firstPatient.uuid);\r",
+              "pm.environment.set(\"patientName\", firstPatient.display);\r",
+              "pm.test(\"First patient UUID saved: \" + firstPatient.uuid, function() {\r",
+              "    pm.expect(firstPatient.uuid).to.not.be.empty;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/patient?q=John&v=default&limit=5",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "patient"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "John"
+            },
+            {
+              "key": "v",
+              "value": "default"
+            },
+            {
+              "key": "limit",
+              "value": "5"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC005 - Search Patient by Name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status is 200\", function() {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Search returns results\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.results.length).to.be.above(0);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Results match search term\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    const hasJohn = body.results.some(p => \r",
+              "        p.display.toLowerCase().includes('john'));\r",
+              "    pm.expect(hasJohn).to.be.true;\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response time under 5 seconds\", function() {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/patient?q=John&v=default",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "patient"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "John"
+            },
+            {
+              "key": "v",
+              "value": "default"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC006 - Single Patient by UUID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status is 200\", function() {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Patient UUID matches requested\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.uuid).to.equal(pm.environment.get(\"patientUuid\"));\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Patient has person details\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body).to.have.property('person');\r",
+              "    // Expected name lives in the environment alongside patientUuid, so the\r",
+              "    // pair can be repointed at a different instance without editing scripts.\r",
+              "    pm.expect(body.person.display).to.equal(pm.environment.get(\"expectedPatientName\"));\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Patient has identifiers\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.identifiers).to.be.an('array');\r",
+              "    pm.expect(body.identifiers.length).to.be.above(0);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Patient is not voided\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.voided).to.equal(false);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Patient gender is correct\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.person.gender).to.equal(pm.environment.get(\"expectedPatientGender\"));\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response time under 5 seconds\", function() {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/patient/{{patientUuid}}?v=full",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "patient",
+            "{{patientUuid}}"
+          ],
+          "query": [
+            {
+              "key": "v",
+              "value": "full"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC006b - Find the source UUID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Identifier sources retrieved\", () => pm.response.to.have.status(200));\r",
+              "\r",
+              "const OPENMRS_ID_TYPE = \"05a29f94-c0ed-11e2-94be-8c13b969e334\";\r",
+              "const sources = pm.response.json().results;\r",
+              "\r",
+              "// Match on identifierType, not on name — names vary between installs\r",
+              "const source = sources.find(s => s.identifierType && s.identifierType.uuid === OPENMRS_ID_TYPE);\r",
+              "\r",
+              "pm.test(\"A generator exists for OpenMRS ID\", () => {\r",
+              "  pm.expect(source, \"no source bound to the OpenMRS ID type\").to.not.be.undefined;\r",
+              "});\r",
+              "\r",
+              "if (source) {\r",
+              "  pm.environment.set(\"idgenSourceUuid\", source.uuid);\r",
+              "  console.log(\"Using source:\", source.name, source.uuid);\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/idgen/identifiersource?v=full",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "idgen",
+            "identifiersource"
+          ],
+          "query": [
+            {
+              "key": "v",
+              "value": "full"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC006c - Generate the identifier",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Identifier generated\", () => {\r",
+              "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+              "});\r",
+              "\r",
+              "const id = pm.response.json().identifier;\r",
+              "\r",
+              "pm.test(\"Identifier returned in valid format\", () => {\r",
+              "  pm.expect(id).to.be.a(\"string\").and.not.empty;\r",
+              "  pm.expect(id).to.match(/^[0-9ACDEFGHJKLMNPRTUVWXY]+$/);\r",
+              "});\r",
+              "\r",
+              "pm.environment.set(\"generatedPatientId\", id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/idgen/identifiersource/{{idgenSourceUuid}}/identifier",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "idgen",
+            "identifiersource",
+            "{{idgenSourceUuid}}",
+            "identifier"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC007 - Create New Patient",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status is 201 (patient created)\", function() {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"New patient UUID is returned\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body).to.have.property('uuid');\r",
+              "    pm.expect(body.uuid).to.not.be.empty;\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Patient first name is Abinaya\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.person.display).to.include('Abinaya');\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Patient gender is Female\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.person.gender).to.equal('F');\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Patient is not voided\", function() {\r",
+              "    const body = pm.response.json();\r",
+              "    pm.expect(body.voided).to.equal(false);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response time under 5 seconds\", function() {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+              "});\r",
+              "\r",
+              "// Save new patient UUID for TC008\r",
+              "const newPatient = pm.response.json();\r",
+              "pm.environment.set(\"newPatientUuid\", newPatient.uuid);\r",
+              "pm.test(\"New patient UUID saved: \" + newPatient.uuid, function() {\r",
+              "    pm.expect(newPatient.uuid).to.not.be.empty;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"identifiers\": [\r\n    {\r\n      \"identifier\": \"{{generatedPatientId}}\",\r\n      \"identifierType\": \"05a29f94-c0ed-11e2-94be-8c13b969e334\",\r\n      \"location\": \"{{locationUuid}}\",\r\n      \"preferred\": true\r\n    }\r\n  ],\r\n  \"person\": {\r\n    \"names\": [\r\n      {\r\n        \"givenName\": \"Abinaya\",\r\n        \"familyName\": \"APITest\",\r\n        \"preferred\": true\r\n      }\r\n    ],\r\n    \"gender\": \"F\",\r\n    \"birthdate\": \"1995-03-15\",\r\n    \"addresses\": [\r\n      {\r\n        \"address1\": \"Dubai Healthcare City\",\r\n        \"cityVillage\": \"Dubai\",\r\n        \"country\": \"UAE\",\r\n        \"preferred\": true\r\n      }\r\n    ]\r\n  }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/patient",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "patient"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC008 - Verify the created patient",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Created patient is retrievable\", () => pm.response.to.have.status(200));\r",
+              "\r",
+              "const patient = pm.response.json();\r",
+              "\r",
+              "pm.test(\"UUID matches the one returned by TC007\", () => {\r",
+              "  pm.expect(patient.uuid).to.eql(pm.environment.get(\"newPatientUuid\"));\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Identifier persisted matches the generated ID\", () => {\r",
+              "  const ids = patient.identifiers.map(i => i.identifier);\r",
+              "  pm.expect(ids).to.include(pm.environment.get(\"generatedPatientId\"));\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Preferred identifier is of type OpenMRS ID\", () => {\r",
+              "  const preferred = patient.identifiers.find(i => i.preferred);\r",
+              "  pm.expect(preferred.identifierType.uuid)\r",
+              "    .to.eql(\"05a29f94-c0ed-11e2-94be-8c13b969e334\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Name persisted correctly\", () => {\r",
+              "  const name = patient.person.preferredName;\r",
+              "  pm.expect(name.givenName).to.eql(\"Abinaya\");\r",
+              "  pm.expect(name.familyName).to.eql(\"APITest\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Demographics persisted correctly\", () => {\r",
+              "  pm.expect(patient.person.gender).to.eql(\"F\");\r",
+              "  pm.expect(patient.person.birthdate).to.include(\"1995-03-15\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Patient is not voided\", () => {\r",
+              "  pm.expect(patient.voided).to.be.false;\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Stored identifier satisfies Luhn Mod-30\", () => {\r",
+              "  const ALLOWED = \"0123456789ACDEFGHJKLMNPRTUVWXY\";\r",
+              "  const full = pm.environment.get(\"generatedPatientId\");\r",
+              "  const base = full.slice(0, -1);\r",
+              "  let factor = 2, sum = 0;\r",
+              "  for (let i = base.length - 1; i >= 0; i--) {\r",
+              "    let addend = factor * ALLOWED.indexOf(base.charAt(i));\r",
+              "    factor = factor === 2 ? 1 : 2;\r",
+              "    sum += Math.floor(addend / 30) + (addend % 30);\r",
+              "  }\r",
+              "  pm.expect(ALLOWED.charAt((30 - (sum % 30)) % 30)).to.eql(full.slice(-1));\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/patient/{{newPatientUuid}}?v=full",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "patient",
+            "{{newPatientUuid}}"
+          ],
+          "query": [
+            {
+              "key": "v",
+              "value": "full"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC009 - Get all visits",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Visits retrieved\", () => pm.response.to.have.status(200));\r",
+              "pm.test(\"Response has results array\", () => {\r",
+              "  pm.expect(pm.response.json().results).to.be.an(\"array\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/visit?limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "visit"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC009b - Get visit types",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Visit types retrieved\", () => pm.response.to.have.status(200));\r",
+              "\r",
+              "const types = pm.response.json().results;\r",
+              "pm.test(\"At least one visit type is configured\", () => {\r",
+              "  pm.expect(types).to.be.an(\"array\").that.is.not.empty;\r",
+              "});\r",
+              "\r",
+              "// Prefer a facility visit; fall back to whatever exists\r",
+              "const type = types.find(t => /facility/i.test(t.display)) || types[0];\r",
+              "pm.environment.set(\"visitTypeUuid\", type.uuid);\r",
+              "console.log(\"Using visit type:\", type.display, type.uuid);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/visittype",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "visittype"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC010 - Create visit",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Visit created\", () => pm.response.to.have.status(201));\r",
+              "\r",
+              "const visit = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Visit is linked to the patient created in TC007\", () => {\r",
+              "  pm.expect(visit.patient.uuid).to.eql(pm.environment.get(\"newPatientUuid\"));\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Visit is open (no stop datetime)\", () => {\r",
+              "  pm.expect(visit.stopDatetime).to.be.null;\r",
+              "});\r",
+              "\r",
+              "pm.environment.set(\"visitUuid\", visit.uuid);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// OpenMRS rejects future-dated visits. Backdate by a minute for clock skew.\r",
+              "const ts = new Date(Date.now() - 60000).toISOString().replace(\"Z\", \"+0000\");\r",
+              "pm.environment.set(\"visitStartDatetime\", ts);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"patient\": \"{{newPatientUuid}}\",\r\n  \"visitType\": \"{{visitTypeUuid}}\",\r\n  \"location\": \"{{locationUuid}}\",\r\n  \"startDatetime\": \"{{visitStartDatetime}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/visit",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "visit"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC011 - Get visit details",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Visit retrieved\", () => pm.response.to.have.status(200));\r",
+              "\r",
+              "const visit = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Returned visit matches the one created\", () => {\r",
+              "  pm.expect(visit.uuid).to.eql(pm.environment.get(\"visitUuid\"));\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Visit type matches what was requested\", () => {\r",
+              "  pm.expect(visit.visitType.uuid).to.eql(pm.environment.get(\"visitTypeUuid\"));\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/visit/{{visitUuid}}?v=full",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "visit",
+            "{{visitUuid}}"
+          ],
+          "query": [
+            {
+              "key": "v",
+              "value": "full"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC012 - Get all locations",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Locations retrieved\", () => pm.response.to.have.status(200));\r",
+              "\r",
+              "const locations = pm.response.json().results;\r",
+              "\r",
+              "pm.test(\"Response has a non-empty results array\", () => {\r",
+              "  pm.expect(locations).to.be.an(\"array\").that.is.not.empty;\r",
+              "});\r",
+              "\r",
+              "pm.test(\"The location used in TC007 exists and is active\", () => {\r",
+              "  const used = locations.find(l => l.uuid === pm.environment.get(\"locationUuid\"));\r",
+              "  pm.expect(used, \"locationUuid not found in /location\").to.not.be.undefined;\r",
+              "  pm.expect(used.retired).to.be.false;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/location?v=default&limit=50",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "location"
+          ],
+          "query": [
+            {
+              "key": "v",
+              "value": "default"
+            },
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC013 - Get all providers",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Providers retrieved\", () => pm.response.to.have.status(200));\r",
+              "\r",
+              "const providers = pm.response.json().results;\r",
+              "\r",
+              "pm.test(\"Response has a non-empty results array\", () => {\r",
+              "  pm.expect(providers).to.be.an(\"array\").that.is.not.empty;\r",
+              "});\r",
+              "\r",
+              "pm.test(\"The provider in the environment exists and is active\", () => {\r",
+              "  const used = providers.find(p => p.uuid === pm.environment.get(\"providerUuid\"));\r",
+              "  pm.expect(used, \"providerUuid not found in /provider\").to.not.be.undefined;\r",
+              "  pm.expect(used.retired).to.be.false;\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Each provider is linked to a person record\", () => {\r",
+              "  providers.slice(0, 5).forEach(p => {\r",
+              "    pm.expect(p.display).to.be.a(\"string\").and.not.empty;\r",
+              "  });\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/provider?v=default&limit=50",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "provider"
+          ],
+          "query": [
+            {
+              "key": "v",
+              "value": "default"
+            },
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC014 - Get Appointments by Date",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Appointments endpoint is available\", () => pm.response.to.have.status(200));\r",
+              "\r",
+              "const appointments = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Response is an array\", () => {\r",
+              "  pm.expect(appointments).to.be.an(\"array\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Any returned appointment has the expected shape\", () => {\r",
+              "  appointments.slice(0, 5).forEach(a => {\r",
+              "    pm.expect(a).to.have.property(\"uuid\").that.is.a(\"string\");\r",
+              "    pm.expect(a).to.have.property(\"service\");\r",
+              "    pm.expect(a).to.have.property(\"status\").that.is.a(\"string\");\r",
+              "  });\r",
+              "});\r",
+              "\r",
+              "console.log(`Appointments on ${pm.environment.get(\"appointmentDate\")}: ${appointments.length}`);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const now = new Date();\r",
+              "const dateOnly = now.toISOString().split(\"T\")[0];\r",
+              "pm.environment.set(\"appointmentDate\", `${dateOnly}T00:00:00.000+0400`);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/appointment/all?forDate={{appointmentDate}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "appointment",
+            "all"
+          ],
+          "query": [
+            {
+              "key": "forDate",
+              "value": "{{appointmentDate}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC016 - Get Patient with Invalid UUID (Negative)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Unknown patient UUID returns 404\", () => {\r",
+              "  pm.response.to.have.status(404);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Error identifies the resource as not found\", () => {\r",
+              "  const err = pm.response.json().error;\r",
+              "  pm.expect(err.detail).to.include(\"ObjectNotFoundException\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/patient/invaliduuid-does-not-exist",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "patient",
+            "invaliduuid-does-not-exist"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC017 - Create Patient with Invalid Identifier (Negative)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Rejects identifier that fails check-digit validation\", () => {\r",
+              "  pm.response.to.have.status(400);\r",
+              "});\r",
+              "\r",
+              "const err = pm.response.json().error;\r",
+              "\r",
+              "pm.test(\"Returns invalid submission error code\", () => {\r",
+              "  pm.expect(err.code).to.eql(\"webservices.rest.error.invalid.submission\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Error names the failing validation scheme\", () => {\r",
+              "  pm.expect(err.globalErrors[0].message).to.include(\"Luhn Mod-30\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"No patient UUID returned on rejection\", () => {\r",
+              "  pm.expect(pm.response.json()).to.not.have.property(\"uuid\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "Admin123",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"identifiers\": [\r\n    {\r\n      \"identifier\": \"ABINA1\",\r\n      \"identifierType\": \"05a29f94-c0ed-11e2-94be-8c13b969e334\",\r\n      \"location\": \"44c3efb0-2583-4c80-a79e-1f756a03c0a1\",\r\n      \"preferred\": true\r\n    }\r\n  ],\r\n  \"person\": {\r\n    \"names\": [\r\n      {\r\n        \"givenName\": \"Abinaya\",\r\n        \"familyName\": \"APITest\",\r\n        \"preferred\": true\r\n      }\r\n    ],\r\n    \"gender\": \"F\",\r\n    \"birthdate\": \"1995-03-15\",\r\n    \"addresses\": [\r\n      {\r\n        \"address1\": \"Dubai Healthcare City\",\r\n        \"cityVillage\": \"Dubai\",\r\n        \"country\": \"UAE\",\r\n        \"preferred\": true\r\n      }\r\n    ]\r\n  }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/patient",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "patient"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC015 - Access Protected Resource Without Auth (Negative)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Invalidate the session on the server. Even if Postman still transmits\r",
+              "// JSESSIONID, the server no longer recognises it as authenticated.\r",
+              "pm.sendRequest({\r",
+              "  url: pm.environment.get(\"baseUrl\") + \"/session\",\r",
+              "  method: \"DELETE\"\r",
+              "}, (err, res) => {\r",
+              "  console.log(\"Pre-emptive logout:\", err ? err : res.code);\r",
+              "});\r",
+              "\r",
+              "// Best-effort cookie clear as well (requires domain allowlist)\r",
+              "pm.cookies.jar().clear(\"test3.openmrs.org\", (err) => {\r",
+              "  console.log(err ? \"Cookie clear blocked: \" + err : \"Cookie jar cleared\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Protected resource rejects unauthenticated request\", () => {\r",
+              "  pm.response.to.have.status(401);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"No patient data returned in the rejection\", () => {\r",
+              "  pm.expect(pm.response.text()).to.not.include(\"Joshua\");\r",
+              "  pm.expect(pm.response.json()).to.not.have.property(\"identifiers\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/patient/{{patientUuid}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "patient",
+            "{{patientUuid}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          "const UA = \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36\";",
+          "pm.request.headers.upsert({ key: \"User-Agent\", value: UA });",
+          "pm.request.headers.upsert({ key: \"Accept\", value: \"application/json\" });",
+          "",
+          "const baseUrl = pm.environment.get(\"baseUrl\");",
+          "pm.sendRequest({",
+          "    url: baseUrl + \"/session\",",
+          "    method: \"GET\",",
+          "    header: { \"User-Agent\": UA, \"Accept\": \"application/json\" },",
+          "    auth: { type: \"basic\", basic: [",
+          "        { key: \"username\", value: pm.environment.get(\"username\") || \"admin\" },",
+          "        { key: \"password\", value: pm.environment.get(\"password\") || \"Admin123\" }",
+          "    ]}",
+          "}, function (err, response) {",
+          "    if (err || !response) { return; }",
+          "    try {",
+          "        if (response.json().authenticated) { console.log(\"Session refreshed\"); }",
+          "    } catch (e) {",
+          "        console.log(\"Session refresh returned non-JSON (status \" + response.code + \")\");",
+          "    }",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}

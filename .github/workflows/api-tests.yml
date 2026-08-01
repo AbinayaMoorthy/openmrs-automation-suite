@@ -1,0 +1,65 @@
+name: API Tests (Newman)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'postman/**'
+      - 'package.json'
+      - '.github/workflows/api-tests.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:        # lets you trigger a run manually from the Actions tab
+  schedule:
+    - cron: '0 6 * * 1'     # Monday 06:00 UTC — catches drift on the shared demo server
+
+jobs:
+  newman:
+    name: Run OpenMRS REST API suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Newman collection
+        # continue-on-error: test3.openmrs.org is a public shared demo server that
+        # goes down without notice. A red job here is not always a red suite, so the
+        # report is always uploaded for inspection.
+        continue-on-error: true
+        run: |
+          mkdir -p newman
+          npx newman run postman/OpenMRS-REST-API-Suite.postman_collection.json \
+            -e postman/OpenMRS-Environment.postman_environment.json \
+            --reporters cli,htmlextra,junit,json \
+            --reporter-htmlextra-export newman/openmrs-api-report.html \
+            --reporter-htmlextra-title "OpenMRS REST API Suite" \
+            --reporter-htmlextra-browserTitle "OpenMRS API Report" \
+            --reporter-junit-export newman/openmrs-api-junit.xml \
+            --reporter-json-export newman/openmrs-api-report.json \
+            --delay-request 300
+
+      - name: Upload Newman reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-reports
+          path: newman/
+          retention-days: 30
+
+      - name: Publish test summary
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: newman/openmrs-api-junit.xml
+          fail_on_failure: false
+          require_tests: false

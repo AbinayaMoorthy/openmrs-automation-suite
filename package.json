@@ -1,0 +1,39 @@
+{
+  "name": "openmrs-healthcare-automation",
+  "version": "1.0.0",
+  "description": "Playwright UI + Postman/Newman API automation suite for the OpenMRS O3 healthcare platform",
+  "keywords": [
+    "playwright",
+    "postman",
+    "newman",
+    "qa",
+    "automation",
+    "openmrs",
+    "api-testing"
+  ],
+  "author": "Abinaya Moorthy",
+  "license": "MIT",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:login": "npx playwright test tests/01-login.test.js --headed",
+    "test:nav": "npx playwright test tests/02-navigation.test.js",
+    "test:patient": "npx playwright test tests/03-patient.test.js --headed",
+    "test:appointment": "npx playwright test tests/04-appointment.test.js --headed",
+    "test:smoke": "npx playwright test --grep @smoke --headed",
+    "report": "npx playwright show-report reports",
+    "demo": "npx playwright test --grep @smoke",
+    "demo:full": "npx playwright test",
+    "inspect:appointment-form": "node tools/inspect-appointment-form.js",
+    "inspect:patient-search": "node tools/inspect-patient-search.js",
+    "api:test": "newman run postman/OpenMRS-REST-API-Suite.postman_collection.json -e postman/OpenMRS-Environment.postman_environment.json --reporters cli,htmlextra,json --reporter-htmlextra-export newman/openmrs-api-report.html --reporter-htmlextra-title \"OpenMRS REST API Suite\" --reporter-htmlextra-browserTitle \"OpenMRS API Report\" --reporter-json-export newman/openmrs-api-report.json --delay-request 300",
+    "api:report": "newman run postman/OpenMRS-REST-API-Suite.postman_collection.json -e postman/OpenMRS-Environment.postman_environment.json --reporters htmlextra --reporter-htmlextra-export newman/openmrs-api-report.html --reporter-htmlextra-title \"OpenMRS REST API Suite\" --delay-request 300 --suppress-exit-code",
+    "api:cli": "newman run postman/OpenMRS-REST-API-Suite.postman_collection.json -e postman/OpenMRS-Environment.postman_environment.json --delay-request 300",
+    "api:ci": "newman run postman/OpenMRS-REST-API-Suite.postman_collection.json -e postman/OpenMRS-Environment.postman_environment.json --reporters cli,junit --reporter-junit-export newman/openmrs-api-junit.xml --delay-request 300 --bail"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "newman": "^6.2.1",
+    "newman-reporter-htmlextra": "^1.23.1"
+  }
+}
