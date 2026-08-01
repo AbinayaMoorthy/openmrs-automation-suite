@@ -2,6 +2,8 @@
 
 [![API Tests (Newman)](https://github.com/AbinayaMoorthy/openmrs-automation-suite/actions/workflows/api-tests.yml/badge.svg)](https://github.com/AbinayaMoorthy/openmrs-automation-suite/actions/workflows/api-tests.yml)
 
+[![UI Tests (Playwright)](https://github.com/AbinayaMoorthy/openmrs-automation-suite/actions/workflows/ui-tests.yml/badge.svg)](https://github.com/AbinayaMoorthy/openmrs-automation-suite/actions/workflows/ui-tests.yml)
+
 End-to-end **UI automation (Playwright)** and **REST API automation (Postman / Newman)** for the
 [OpenMRS 3.x](https://openmrs.org) healthcare platform, running against the public OpenMRS demo
 instances. The UI suite targets `test3.openmrs.org`; the API suite targets `dev3.openmrs.org` — see
@@ -26,6 +28,7 @@ instances. The UI suite targets `test3.openmrs.org`; the API suite targets `dev3
 - [Installation](#installation)
 - [Running the UI tests](#running-the-ui-tests)
 - [Running the API tests](#running-the-api-tests)
+- [Continuous integration](#continuous-integration)
 - [Test coverage](#test-coverage)
 - [Architecture and design decisions](#architecture-and-design-decisions)
 - [Environment variables](#environment-variables)
@@ -237,15 +240,14 @@ GitHub renders `.html` files in a repository as source, not as a page. Two optio
 2. **GitHub Pages** — *Settings → Pages → Source: `main` / root*, then the report is served at
    `https://<user>.github.io/openmrs-automation-suite/newman/openmrs-api-report.html`.
 
-### Running in CI
+`.github/workflows/ui-tests.yml` runs the Playwright suite on every push touching test or
+page-object code, on pull requests, weekly, and on demand. It carries the same
+`continue-on-error` treatment for the same reason.
 
-`.github/workflows/api-tests.yml` runs the collection on every push touching `postman/`, on pull
-requests, weekly on a schedule, and on demand from the Actions tab. Reports upload as a build
-artefact and JUnit results render in the run summary.
-
-The job is marked `continue-on-error` on purpose: the OpenMRS demo instances are public and shared, so
-an outage would otherwise paint the repository red for a reason that has nothing to do with the
-tests. The report is still uploaded either way, which is where the actual verdict lives.
+The UI job runs under `xvfb-run`. Both `playwright.config.js` and `global-setup.js` launch
+Chrome **headed** on purpose — headless trips test3's bot protection — so the runner needs a
+virtual display rather than a headless flag. The job also installs real Google Chrome
+(`--with-deps chrome`) because the config pins `channel: 'chrome'`.
 
 ### Request order matters
 
@@ -264,6 +266,16 @@ TC010 create visit    →  saves visitUuid            →  consumed by TC011
 Running a single request in isolation will fail on an empty variable. Run the whole collection.
 
 ---
+
+## Continuous integration
+
+`.github/workflows/api-tests.yml` runs the collection on every push touching `postman/`, on pull
+requests, weekly on a schedule, and on demand from the Actions tab. Reports upload as a build
+artefact and JUnit results render in the run summary.
+
+The job is marked `continue-on-error` on purpose: the OpenMRS demo instances are public and shared, so
+an outage would otherwise paint the repository red for a reason that has nothing to do with the
+tests. The report is still uploaded either way, which is where the actual verdict lives.
 
 ## Test coverage
 
@@ -486,6 +498,7 @@ Both require `.auth/state.json`, so run `npm test` at least once first.
 | Newman: `Cannot read property of undefined` | Ran one request in isolation | The collection is stateful — run it top to bottom |
 | Newman: `401 Unauthorized` | Demo credentials rotated | Update `username` / `password` in the environment file |
 | Health check logs HTTP 403 | Bot protection blocking the bare HTTP probe | Advisory only — the real browser login proceeds |
+| UI search test passes locally, fails in CI with 0 results | The empty state can render transiently while the query is still in flight; a `.or()` wait resolves on whichever appears first, and CI's higher latency loses that race | Wait for the result row itself with `expect(...).toBeVisible()`, not for first-settled state |
 
 Failed runs capture screenshots, video and a Playwright trace:
 
