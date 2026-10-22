@@ -548,8 +548,9 @@ consecutive attempts.
 
 ## Author
 
-**Abinaya Moorthy** — QA Engineer
-Manual testing · API automation · UI automation · Performance testing
+**Abinaya M** — QA Automation Engineer  
+Test automation · API testing · CI/CD · QA analytics  
+[LinkedIn](https://www.linkedin.com/in/abinaya-m-8a668b202) · abinaya.work02@gmail.com
 
 ---
 
