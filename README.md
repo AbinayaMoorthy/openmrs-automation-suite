@@ -554,4 +554,8 @@ Test automation · API testing · CI/CD · QA analytics
 
 ---
 
+## License
+
+MIT — see [LICENSE](LICENSE).
+
 *Built as a portfolio project against the public OpenMRS demo instance.*
